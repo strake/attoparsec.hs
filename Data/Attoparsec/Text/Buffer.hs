@@ -44,8 +44,7 @@ import Data.Monoid as Mon (Monoid(..))
 import Data.Semigroup (Semigroup(..))
 import Data.Text ()
 import Data.Text.Internal (Text(..))
-import Data.Text.Internal.Encoding.Utf16 (chr2)
-import Data.Text.Internal.Unsafe.Char (unsafeChr)
+import Data.Text.Internal.Encoding.Utf8 (decodeCharIndex)
 import Data.Text.Unsafe (Iter(..))
 import Foreign.Storable (sizeOf)
 import GHC.Base (Int(..), indexIntArray#, unsafeCoerce#, writeIntArray#)
@@ -138,25 +137,19 @@ dropWord16 s (Buf arr off len _ _) =
   Text arr (off+s) (len-s)
 {-# INLINE dropWord16 #-}
 
--- | /O(1)/ Iterate (unsafely) one step forwards through a UTF-16
+-- | /O(1)/ Iterate (unsafely) one step forwards through a UTF-8
 -- array, returning the current character and the delta to add to give
 -- the next offset to iterate at.
 iter :: Buffer -> Int -> Iter
-iter (Buf arr off _ _ _) i
-    | m < 0xD800 || m > 0xDBFF = Iter (unsafeChr m) 1
-    | otherwise                = Iter (chr2 m n) 2
-  where m = A.unsafeIndex arr j
-        n = A.unsafeIndex arr k
-        j = off + i
-        k = j + 1
+iter (Buf arr off _ _ _) i =
+  decodeCharIndex (\c d -> Iter c d) (A.unsafeIndex arr) (off + i)
 {-# INLINE iter #-}
 
--- | /O(1)/ Iterate one step through a UTF-16 array, returning the
+-- | /O(1)/ Iterate one step through a UTF-8 array, returning the
 -- delta to add to give the next offset to iterate at.
 iter_ :: Buffer -> Int -> Int
-iter_ (Buf arr off _ _ _) i | m < 0xD800 || m > 0xDBFF = 1
-                                | otherwise                = 2
-  where m = A.unsafeIndex arr (off+i)
+iter_ (Buf arr off _ _ _) i =
+  decodeCharIndex (\_ d -> d) (A.unsafeIndex arr) (off + i)
 {-# INLINE iter_ #-}
 
 unsafeThaw :: A.Array -> ST s (A.MArray s)

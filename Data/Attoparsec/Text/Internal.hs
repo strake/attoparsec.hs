@@ -179,7 +179,7 @@ string_ suspended f s0 = T.Parser $ \t pos more lose succ ->
          | T.null ft         -> suspended s s t pos more lose succ
          | otherwise         -> lose t pos more [] "string"
        Just (pfx,ssfx,tsfx)
-         | T.null ssfx       -> let l = Pos (T.lengthWord16 pfx)
+         | T.null ssfx       -> let l = Pos (T.lengthWord8 pfx)
                                 in succ t (pos + l) more (substring pos l t)
          | not (T.null tsfx) -> lose t pos more [] "string"
          | otherwise         -> suspended s ssfx t pos more lose succ
@@ -198,7 +198,7 @@ stringSuspended f s000 s0 t0 pos0 more0 lose0 succ0 =
       in case T.commonPrefixes s0 s of
         Nothing         -> lose t pos more [] "string"
         Just (_pfx,ssfx,tsfx)
-          | T.null ssfx -> let l = Pos (T.lengthWord16 s000)
+          | T.null ssfx -> let l = Pos (T.lengthWord8 s000)
                            in succ t (pos + l) more (substring pos l t)
           | T.null tsfx -> stringSuspended f s000 ssfx t pos more lose succ
           | otherwise   -> lose t pos more [] "string"
