@@ -1,3 +1,11 @@
+0.13.2.1
+
+* Improved performance of `Data.Attoparsec.Text.asciiCI`
+
+0.13.2.0
+
+* `pure` is now strict in `Position`
+
 0.13.1.0
 
 * `runScanner` now correctly returns the final state

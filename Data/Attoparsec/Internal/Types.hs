@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, GeneralizedNewtypeDeriving, OverloadedStrings,
+{-# LANGUAGE CPP, BangPatterns, GeneralizedNewtypeDeriving, OverloadedStrings,
     Rank2Types, RecordWildCards, TypeFamilies #-}
 -- |
 -- Module      :  Data.Attoparsec.Internal.Types
@@ -39,7 +39,7 @@ import Data.ByteString.Internal (w2c)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Data.Text.Unsafe (Iter(..))
-import Prelude hiding (getChar, succ)
+import Prelude hiding (succ)
 import qualified Data.Attoparsec.ByteString.Buffer as B
 import qualified Data.Attoparsec.Text.Buffer as T
 
@@ -136,8 +136,10 @@ instance Mon.Monoid More where
     mempty  = Incomplete
 
 instance Monad (Parser i) where
+#if !(MIN_VERSION_base(4,13,0))
     fail = Fail.fail
     {-# INLINE fail #-}
+#endif
 
     return = App.pure
     {-# INLINE return #-}
@@ -207,8 +209,9 @@ instance Alternative (Parser i) where
     {-# INLINE (<|>) #-}
 
     many v = many_v
-        where many_v = some_v <|> pure []
-              some_v = (:) App.<$> v <*> many_v
+      where
+        many_v = some_v <|> pure []
+        some_v = (:) <$> v <*> many_v
     {-# INLINE many #-}
 
     some v = some_v
